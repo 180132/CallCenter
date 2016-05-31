@@ -1,0 +1,40 @@
+package AutomaticService;
+
+import com.skype.ChatMessage;
+import com.skype.ChatMessageAdapter;
+import com.skype.Skype;
+import com.skype.SkypeException;
+import com.skype.User;
+
+public class AutoAnswering {
+
+	 public static void main(String[] args) throws Exception {
+		 
+	        System.out.println("Start Auto Answering ...");
+	         
+	        // To prevent exiting from this program
+	        Skype.setDaemon(false);
+	         
+	        Skype.addChatMessageListener(new ChatMessageAdapter() {
+	            public void chatMessageReceived(ChatMessage received)
+	                    throws SkypeException {
+	                if (received.getType().equals(ChatMessage.Type.SAID)) {
+	 
+	                    User sender =received.getSender();    
+	                     
+	                    System.out.println(sender.getId() +" say:");
+	                    System.out.println(" "+received.getContent() );
+	                     
+	                    received.getSender().send(
+	                            "Hello, this is automatic Call Center!.. \n"
+	                            + "Choose what you want to do /n");
+	                     
+	                    System.out.println(" - Auto answered!");
+	                }
+	            }
+	        });
+	         
+	         
+	        System.out.println("Auto Answering started!");
+	    }
+}
