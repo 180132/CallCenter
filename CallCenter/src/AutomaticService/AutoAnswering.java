@@ -11,9 +11,9 @@ import com.skype.User;
 
 public class AutoAnswering {
 
-	static Dictionary<String,String> Clients = new Hashtable<String,String>();
+	private Dictionary<String, String> Clients = new Hashtable<String, String>();
 	
-	 public static void main(String[] args) throws Exception {
+	public AutoAnswering() throws Exception {
 		 
 	        System.out.println("Start Auto Answering ...");
 
@@ -39,7 +39,7 @@ public class AutoAnswering {
 	        System.out.println("Auto Answering started!");
 	    }
 	 
-	 private static String Answer(String user, String message){
+	 private String Answer(String user, String message){
 		 if(Clients.get(user)==null){
 			 Clients.put(user, "state0");
 		 	return "Hello, this is automatic Call Center!\n\n"
