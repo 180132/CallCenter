@@ -13,7 +13,7 @@ import java.util.Map.Entry;
 
 public class RestApi {
 	private String basicUrl;
-	private HashMap<String, String> properties = new HashMap<>();
+	private HashMap<String, String> defaultProperties = new HashMap<>();
 	
 	private enum MethodType {
 		GET, POST, PUT, DELETE
@@ -21,44 +21,106 @@ public class RestApi {
 		
 	public RestApi(String basicUrl) {
 		this.basicUrl = basicUrl;
-		this.properties.put("Authorization", "Basic a2VybWl0Omtlcm1pdA==");
-		testRestMethods();
-	}
+		this.defaultProperties.put("Authorization", "Basic a2VybWl0Omtlcm1pdA==");
+	}	
 	
-	
-	private void testRestMethods() {		
+	public String listOfProcessDefinitions() {
 		try {
-			testGetMethod(properties);
-			//testPostMethod(properties);
-			//testPutMethod(properties);	     
-			//testDeleteMethod(properties);	        				
+			return httpRequest(basicUrl + "/repository/process-definitions", defaultProperties, MethodType.GET);
 		} catch(IOException e) {
 			e.printStackTrace();
 		}
-	}	
-	
-	private void testGetMethod(HashMap<String, String> properties) throws IOException {
-		String jsonString = httpRequest(basicUrl + "/deployments", properties, MethodType.GET);
-		System.out.println("PARAMETER: " + jsonString + "\n\n");
+		return null;
 	}
 	
-	private void testPostMethod(HashMap<String, String> properties) throws IOException {
-		System.out.println("Post\n" + httpRequest(basicUrl + "", properties, MethodType.POST)); //Dodawanie deploymentu.
-	}//"?id=10&name=activiti-examples.bar&deploymentTime=2010-10-13T14:54:26.750+02:00&category=null&url=http://localhost:8081/service/repository/deployments/10&tenantId=10"
-	
-	private void testPutMethod(HashMap<String, String> properties) throws IOException {
-		System.out.println("Put\n" + httpRequest(basicUrl + "/id2/sort", properties, MethodType.PUT));
+	public String getProcessDefinition(String processDefinitionId) {
+		try {
+			return httpRequest(basicUrl + "/repository/process-definitions/" + processDefinitionId, defaultProperties, MethodType.GET);
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 	
-	private void testDeleteMethod(HashMap<String, String> properties) throws IOException {
-		System.out.println("Delete\n" + httpRequest(basicUrl + "/20", properties, MethodType.DELETE)); //Usuwanie deployment'u o id równym 20.
+	public String listOfProcessInstances() {
+		try {
+			return httpRequest(basicUrl + "/runtime/process-instances", defaultProperties, MethodType.GET);
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 	
-	private String httpRequest(String urlStr, HashMap<String, String> properties, MethodType methodType) throws IOException {		
+	public String getProcessInstance(String processInstanceId) {
+		try {
+			return httpRequest(basicUrl + "/runtime/process-instances/" + processInstanceId, defaultProperties, MethodType.GET);
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public void activateProcessDefinition(String processDefinitionId) {
+		try {
+			HashMap<String, String> body = new HashMap<>(defaultProperties);
+			body.put("action", "activate");
+			body.put("includeProcessInstances", "true");
+			body.put("date", null);
+			httpRequest(basicUrl + "/repository/process-definitions/" + processDefinitionId, body, MethodType.PUT);			
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void activateOrSuspendProcessInstance(String processInstanceId, boolean activate) {
+		try {
+			HashMap<String, String> body = new HashMap<>(defaultProperties);
+			if(activate) {
+				body.put("action", "activate");
+			} else {
+				body.put("action", "suspend");
+			}
+			httpRequest(basicUrl + "/runtime/process-instances/" + processInstanceId, body, MethodType.PUT);			
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void startProcessInstance(String processDefinitionId, String businessKey) {
+		try {
+			HashMap<String, String> body = new HashMap<>(defaultProperties);
+			body.put("processDefinitionId", processDefinitionId);
+			body.put("businessKey", businessKey);
+			body.put("variables", null);
+			httpRequest(basicUrl + "/runtime/process-instances", body, MethodType.POST);			
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public String getTask(String taskId) {
+		try {
+			return httpRequest(basicUrl + "/runtime/tasks/" + taskId, defaultProperties, MethodType.GET);
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public String getTasks() {
+		try {
+			return httpRequest(basicUrl + "/runtime/tasks", defaultProperties, MethodType.GET);
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	private String httpRequest(String urlStr, HashMap<String, String> body, MethodType methodType) throws IOException {		
 		URL url = new URL(urlStr);
 		HttpURLConnection httpConnection = (HttpURLConnection) url.openConnection();
 		httpConnection.setRequestMethod(methodType.toString());
-		for(Entry<String, String> entry : properties.entrySet()) {
+		for(Entry<String, String> entry : body.entrySet()) {
 			httpConnection.setRequestProperty(entry.getKey(), entry.getValue());
 		}
 
