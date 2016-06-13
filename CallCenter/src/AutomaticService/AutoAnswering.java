@@ -1,24 +1,30 @@
 package AutomaticService;
 
+import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
+import com.skype.Call;
 import com.skype.ChatMessage;
 import com.skype.ChatMessageAdapter;
 import com.skype.Skype;
 import com.skype.SkypeException;
 import com.skype.User;
+import com.skype.User.Status;
 
 public class AutoAnswering {
 
 	private Dictionary<String, String> Clients = new Hashtable<String, String>();
-	
+	private static ArrayList<Consultant> consultants = new ArrayList<Consultant>();
 	public AutoAnswering() throws Exception {
 		 
+		initConsultants();
+		chooseConsultant();
+			Skype.setDaemon(false);
+			//Skype callCenter = new Skype("","");
 	        System.out.println("Start Auto Answering ...");
-
-	        Skype.setDaemon(false);
-	         
+	        System.out.println(Skype.getProfile().getId());
+	       
 	        Skype.addChatMessageListener(new ChatMessageAdapter() {
 	            public void chatMessageReceived(ChatMessage received)
 	                    throws SkypeException {
@@ -56,6 +62,7 @@ public class AutoAnswering {
 				 }
 				 if(message.equals("2")){
 					 Clients.put(user, "state2");//klient przechodzi do innego taska
+					 callToConsultant(user);
 					 return "Calling ...";
 				 }
 				 else{
@@ -68,5 +75,46 @@ public class AutoAnswering {
 			 else
 				 return "Error - You should be eighter calling or loging in";
 		 }
+	 }
+	 
+	 private static boolean callToConsultant(String userId){
+		 try {
+			
+			Consultant k = chooseConsultant();
+			if(k!=null) {
+				Call c = Skype.call(userId);
+				c.transferTo(k.id);
+			}
+		} catch (SkypeException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		 return true;
+	 }
+	 
+	 private static Consultant chooseConsultant(){
+		 
+		 ArrayList<Consultant> active = new ArrayList<Consultant>();
+		 for(Consultant it:consultants) {
+			 User u;
+			try {
+				u = Skype.getUser(it.id);
+				if(u.getStatus()==Status.ONLINE) active.add(it);
+			} catch (SkypeException e) {
+				e.printStackTrace();
+			}
+		 }
+		 active.sort((o1, o2) -> o1.waitingTime.compareTo(o2.waitingTime));
+		 for(Consultant it:active)System.out.println(it.id + " "+it.waitingTime);
+
+		 return active.size()!=0 ? active.get(0) : null;
+	 }
+	 
+	 private static void initConsultants(){
+		 consultants.add(new Consultant("konsultant1.miasi"));
+		 consultants.add(new Consultant("konsultant2.miasi"));
+		 consultants.add(new Consultant("konsultant3.miasi"));
+		 consultants.add(new Consultant("konsultant4.miasi"));
+		 consultants.add(new Consultant("konsultant5.miasi"));
 	 }
 }
