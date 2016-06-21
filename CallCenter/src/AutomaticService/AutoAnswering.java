@@ -15,11 +15,14 @@ import com.skype.User.Status;
 public class AutoAnswering {
 
 	private Dictionary<String, String> Clients = new Hashtable<String, String>();
+	
+	//lista z konsultantami
 	private static ArrayList<Consultant> consultants = new ArrayList<Consultant>();
+	
 	public AutoAnswering() throws Exception {
 		 
-		initConsultants();
-		chooseConsultant();
+		initConsultants();//wype³nij listê konsultantami
+		//chooseConsultant();
 			Skype.setDaemon(false);
 			//Skype callCenter = new Skype("","");
 	        System.out.println("Start Auto Answering ...");
@@ -77,6 +80,8 @@ public class AutoAnswering {
 		 }
 	 }
 	 
+	 //rozpoczyna nowa rozmowe i przekierowuje ja do konsultanta
+	 //jesli nie ma wolnych konsultantow zwraca false
 	 private static boolean callToConsultant(String userId){
 		 try {
 			
@@ -85,6 +90,9 @@ public class AutoAnswering {
 				Call c = Skype.call(userId);
 				c.transferTo(k.id);
 			}
+			else{
+				return false;
+			}
 		} catch (SkypeException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -92,8 +100,10 @@ public class AutoAnswering {
 		 return true;
 	 }
 	 
+	 //wyberz 1 konsultanta, ktory najdluzej czeka i jest aktywny, inaczej zwroc null
 	 private static Consultant chooseConsultant(){
 		 
+		 //lista aktywnych konsultantów
 		 ArrayList<Consultant> active = new ArrayList<Consultant>();
 		 for(Consultant it:consultants) {
 			 User u;
@@ -110,6 +120,7 @@ public class AutoAnswering {
 		 return active.size()!=0 ? active.get(0) : null;
 	 }
 	 
+	 //wype³nianie listy konsultantami
 	 private static void initConsultants(){
 		 consultants.add(new Consultant("konsultant1.miasi"));
 		 consultants.add(new Consultant("konsultant2.miasi"));
