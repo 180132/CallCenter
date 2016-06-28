@@ -13,7 +13,7 @@ import java.util.Map.Entry;
 
 public class RestApi {
 	private String basicUrl;
-	private HashMap<String, String> defaultProperties = new HashMap<>();
+	private HashMap<String, String> defaultProperties = new HashMap<String,String>();
 	
 	private enum MethodType {
 		GET, POST, PUT, DELETE
@@ -22,6 +22,8 @@ public class RestApi {
 	public RestApi(String basicUrl) {
 		this.basicUrl = basicUrl;
 		this.defaultProperties.put("Authorization", "Basic a2VybWl0Omtlcm1pdA==");
+		this.defaultProperties.put("jdbcUrl", "jdbc:h2:mem:activiti;DB_CLOSE_DELAY=1000");
+		this.defaultProperties.put("jdbcDriver", "org.h2.Driver");
 	}	
 	
 	public String listOfProcessDefinitions() {
@@ -51,6 +53,15 @@ public class RestApi {
 		return null;
 	}
 	
+	public String listOfModels() {
+		try {
+			return httpRequest(basicUrl + "/repository/models", defaultProperties, MethodType.GET);
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
 	public String getProcessInstance(String processInstanceId) {
 		try {
 			return httpRequest(basicUrl + "/runtime/process-instances/" + processInstanceId, defaultProperties, MethodType.GET);
@@ -62,7 +73,7 @@ public class RestApi {
 	
 	public void activateProcessDefinition(String processDefinitionId) {
 		try {
-			HashMap<String, String> body = new HashMap<>(defaultProperties);
+			HashMap<String, String> body = new HashMap<String, String>(defaultProperties);
 			body.put("action", "activate");
 			body.put("includeProcessInstances", "true");
 			body.put("date", null);
@@ -74,7 +85,7 @@ public class RestApi {
 	
 	public void activateOrSuspendProcessInstance(String processInstanceId, boolean activate) {
 		try {
-			HashMap<String, String> body = new HashMap<>(defaultProperties);
+			HashMap<String, String> body = new HashMap<String, String>(defaultProperties);
 			if(activate) {
 				body.put("action", "activate");
 			} else {
@@ -88,7 +99,7 @@ public class RestApi {
 	
 	public void startProcessInstance(String processDefinitionId, String businessKey) {
 		try {
-			HashMap<String, String> body = new HashMap<>(defaultProperties);
+			HashMap<String, String> body = new HashMap<String, String>(defaultProperties);
 			body.put("processDefinitionId", processDefinitionId);
 			body.put("businessKey", businessKey);
 			body.put("variables", null);
